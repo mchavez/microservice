@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package user;
+option go_package = "microservice/proto;proto";
+
+service UserService {
+  rpc GetUsers (Empty) returns (UserList);
+  rpc AddUser (User) returns (User);
+}
+
+message Empty {}
+
+message User {
+  int32 id = 1;
+  string name = 2;
+}
+
+message UserList {
+  repeated User users = 1;
+}

@@ -1,0 +1,74 @@
+package main
+
+import (
+	"log"
+	"net"
+	"os"
+
+	grpcdelivery "microservice/internal/user/delivery/grpc"
+	userHttp "microservice/internal/user/delivery/http"
+	"microservice/internal/user/repository"
+	"microservice/internal/user/usecase"
+	pb "microservice/proto"
+
+	_ "microservice/docs"
+
+	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+)
+
+// @title User Microservice API
+// @version 1.0
+// @description REST API for managing users
+// @host localhost:8080
+// @BasePath /
+func main() {
+	var repo repository.UserRepository
+	var err error
+
+	if os.Getenv("USE_DB") == "true" {
+		repo, err = repository.NewPostgresUserRepo(
+			os.Getenv("DB_HOST"),
+			os.Getenv("DB_PORT"),
+			os.Getenv("DB_USER"),
+			os.Getenv("DB_PASS"),
+			os.Getenv("DB_NAME"),
+		)
+		if err != nil {
+			log.Fatalf("failed to connect to DB: %v", err)
+		}
+		log.Println("Using PostgreSQL repository")
+	} else {
+		repo = repository.NewInMemoryUserRepo()
+		log.Println("Using In-Memory repository")
+	}
+
+	uc := usecase.NewUserUseCase(repo)
+
+	// gRPC server
+	go func() {
+
+		lis, err := net.Listen("tcp", ":50051")
+		if err != nil {
+			log.Fatalf("failed to listen: %v", err)
+		}
+		grpcServer := grpc.NewServer()
+		pb.RegisterUserServiceServer(grpcServer, grpcdelivery.NewUserGRPCServer(uc))
+		// Register reflection service on gRPC server.
+		reflection.Register(grpcServer)
+		log.Println("gRPC server running on :50051")
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("failed to serve gRPC: %v", err)
+		}
+	}()
+
+	// Gin REST server
+	router := gin.Default()
+	userHttp.NewUserHandler(router, uc)
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	log.Println("REST server running on :8080")
+	router.Run(":8080")
+}
