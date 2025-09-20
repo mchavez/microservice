@@ -28,26 +28,28 @@ import (
 // @host localhost:8080
 // @BasePath /
 func main() {
-	// setup logger
-	logger := logrus.New()
-	logger.SetFormatter(&logrus.JSONFormatter{}) // JSON logs
-	logger.SetLevel(logrus.InfoLevel)
+	logger := setupLogger()
 
 	repo, err := initializeRepository()
 	if err != nil {
 		logger.Fatalf("failed to connect to DB: %v", err)
 	}
 
-	// usecases (inject logger)
 	uc := usecase.NewUserUseCase(repo, logger)
 
-	startGRPCServer(uc, logger)
-	startRESTServer(uc, logger)
+	startServers(uc, logger)
+}
+
+func setupLogger() *logrus.Logger {
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.JSONFormatter{})
+	logger.SetLevel(logrus.InfoLevel)
+	return logger
 }
 
 func initializeRepository() (repository.UserRepository, error) {
 	if os.Getenv("USE_DB") == "true" {
-		return repository.NewPostgresUserRepo( // repositories
+		return repository.NewPostgresUserRepo(
 			os.Getenv("DB_HOST"),
 			os.Getenv("DB_PORT"),
 			os.Getenv("DB_USER"),
@@ -59,23 +61,26 @@ func initializeRepository() (repository.UserRepository, error) {
 	return repository.NewInMemoryUserRepo(), nil
 }
 
-func startGRPCServer(uc *usecase.UserUseCase, logger *logrus.Logger) {
-	go func() {
-		lis, err := net.Listen("tcp", ":50051")
-		if err != nil {
-			logger.Fatalf("failed to listen: %v", err)
-		}
+func startServers(uc *usecase.UserUseCase, logger *logrus.Logger) {
+	go startGRPCServer(uc, logger)
+	startRESTServer(uc, logger)
+}
 
-		grpcServer := grpc.NewServer(
-			grpc.UnaryInterceptor(middleware.UnaryLoggingInterceptor(logger)),
-		)
-		pb.RegisterUserServiceServer(grpcServer, grpcdelivery.NewUserGRPCServer(uc, logger))
-		reflection.Register(grpcServer) // Allow grpcurl reflection
-		log.Println("gRPC server running on :50051")
-		if err := grpcServer.Serve(lis); err != nil {
-			logger.Fatalf("failed to serve gRPC: %v", err)
-		}
-	}()
+func startGRPCServer(uc *usecase.UserUseCase, logger *logrus.Logger) {
+	lis, err := net.Listen("tcp", ":50051")
+	if err != nil {
+		logger.Fatalf("failed to listen: %v", err)
+	}
+
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(middleware.UnaryLoggingInterceptor(logger)),
+	)
+	pb.RegisterUserServiceServer(grpcServer, grpcdelivery.NewUserGRPCServer(uc, logger))
+	reflection.Register(grpcServer)
+	log.Println("gRPC server running on :50051")
+	if err := grpcServer.Serve(lis); err != nil {
+		logger.Fatalf("failed to serve gRPC: %v", err)
+	}
 }
 
 func startRESTServer(uc *usecase.UserUseCase, logger *logrus.Logger) {
