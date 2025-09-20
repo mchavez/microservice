@@ -27,7 +27,7 @@ func TestPostgresUserRepo(t *testing.T) {
 	}
 
 	// Add user
-	u, err := repo.Add(&entity.User{Name: "Charlie"})
+	u, err := repo.Save(&entity.User{Name: "Charlie"})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -36,7 +36,7 @@ func TestPostgresUserRepo(t *testing.T) {
 	}
 
 	// Get all
-	users, err := repo.GetAll()
+	users, err := repo.FindAll()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
