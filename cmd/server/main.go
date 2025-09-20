@@ -26,49 +26,53 @@ import (
 // @host localhost:8080
 // @BasePath /
 func main() {
-	var repo repository.UserRepository
-	var err error
+	repo, err := initializeRepository()
+	if err != nil {
+		log.Fatalf("Repository initialization failed: %v", err)
+	}
 
+	uc := usecase.NewUserUseCase(repo)
+
+	startGRPCServer(uc)
+	startRESTServer(uc)
+}
+
+func initializeRepository() (repository.UserRepository, error) {
 	if os.Getenv("USE_DB") == "true" {
-		repo, err = repository.NewPostgresUserRepo(
+		return repository.NewPostgresUserRepo(
 			os.Getenv("DB_HOST"),
 			os.Getenv("DB_PORT"),
 			os.Getenv("DB_USER"),
 			os.Getenv("DB_PASS"),
 			os.Getenv("DB_NAME"),
 		)
-		if err != nil {
-			log.Fatalf("failed to connect to DB: %v", err)
-		}
-		log.Println("Using PostgreSQL repository")
-	} else {
-		repo = repository.NewInMemoryUserRepo()
-		log.Println("Using In-Memory repository")
 	}
+	log.Println("Using In-Memory repository")
+	return repository.NewInMemoryUserRepo(), nil
+}
 
-	uc := usecase.NewUserUseCase(repo)
-
-	// gRPC server
+func startGRPCServer(uc *usecase.UserUseCase) {
 	go func() {
-
 		lis, err := net.Listen("tcp", ":50051")
 		if err != nil {
 			log.Fatalf("failed to listen: %v", err)
 		}
 		grpcServer := grpc.NewServer()
 		pb.RegisterUserServiceServer(grpcServer, grpcdelivery.NewUserGRPCServer(uc))
-		// Register reflection service on gRPC server.
 		reflection.Register(grpcServer)
 		log.Println("gRPC server running on :50051")
 		if err := grpcServer.Serve(lis); err != nil {
 			log.Fatalf("failed to serve gRPC: %v", err)
 		}
 	}()
+}
 
-	// Gin REST server
+func startRESTServer(uc *usecase.UserUseCase) {
 	router := gin.Default()
 	userHttp.NewUserHandler(router, uc)
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	log.Println("REST server running on :8080")
-	router.Run(":8080")
+	if err := router.Run(":8080"); err != nil {
+		log.Fatalf("failed to run REST server: %v", err)
+	}
 }

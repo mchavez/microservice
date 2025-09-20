@@ -1,7 +1,5 @@
 package grpc
 
-// package grpcdelivery
-
 import (
 	"context"
 	"microservice/internal/user/entity"
@@ -22,16 +20,18 @@ func NewUserGRPCServer(uc *usecase.UserUseCase) *UserGRPCServer {
 }
 
 func (s *UserGRPCServer) GetUsers(ctx context.Context, _ *pb.ListUsersRequest) (*pb.ListUsersResponse, error) {
-	users, _ := s.uc.GetUsers()
-	res := make([]*pb.User, 0, len(users))
-	for _, u := range users {
-		res = append(res, &pb.User{Id: u.ID, Name: u.Name})
+	users, err := s.uc.GetUsers()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to retrieve users: %v", err)
 	}
-	return &pb.ListUsersResponse{Users: res}, nil
+	return convertToListUsersResponse(users), nil
 }
 
 func (s *UserGRPCServer) AddUser(ctx context.Context, user *pb.User) (*pb.User, error) {
-	u, _ := s.uc.CreateUser(&entity.User{Name: user.Name})
+	u, err := s.uc.CreateUser(&entity.User{Name: user.Name})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to create user: %v", err)
+	}
 	return &pb.User{Id: u.ID, Name: u.Name}, nil
 }
 
@@ -52,11 +52,23 @@ func (s *UserGRPCServer) GetUsersByName(ctx context.Context, req *pb.GetUsersByN
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "no users found")
 	}
+	return convertToGetUsersByNameResponse(users), nil
+}
 
-	var pbUsers []*pb.User
-	for _, u := range users {
-		pbUsers = append(pbUsers, &pb.User{Id: u.ID, Name: u.Name})
+// Helper function to convert users to ListUsersResponse
+func convertToListUsersResponse(users []*entity.User) *pb.ListUsersResponse {
+	res := make([]*pb.User, len(users))
+	for i, u := range users {
+		res[i] = &pb.User{Id: u.ID, Name: u.Name}
 	}
+	return &pb.ListUsersResponse{Users: res}
+}
 
-	return &pb.GetUsersByNameResponse{Users: pbUsers}, nil
+// Helper function to convert users to GetUsersByNameResponse
+func convertToGetUsersByNameResponse(users []*entity.User) *pb.GetUsersByNameResponse {
+	res := make([]*pb.User, len(users))
+	for i, u := range users {
+		res[i] = &pb.User{Id: u.ID, Name: u.Name}
+	}
+	return &pb.GetUsersByNameResponse{Users: res}
 }
