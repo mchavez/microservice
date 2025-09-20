@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"microservice/internal/user/entity"
 
@@ -28,7 +29,7 @@ func NewPostgresUserRepo(host, port, user, password, dbname string) (*PostgresUs
 	return &PostgresUserRepo{db: db}, nil
 }
 
-func (r *PostgresUserRepo) GetAll() ([]*entity.User, error) {
+func (r *PostgresUserRepo) FindAll() ([]*entity.User, error) {
 	rows, err := r.db.Query("SELECT id, name FROM users")
 	if err != nil {
 		return nil, err
@@ -46,7 +47,7 @@ func (r *PostgresUserRepo) GetAll() ([]*entity.User, error) {
 	return users, nil
 }
 
-func (r *PostgresUserRepo) Add(user *entity.User) (*entity.User, error) {
+func (r *PostgresUserRepo) Save(user *entity.User) (*entity.User, error) {
 	err := r.db.QueryRow(
 		"INSERT INTO users (name) VALUES ($1) RETURNING id",
 		user.Name,
@@ -55,4 +56,40 @@ func (r *PostgresUserRepo) Add(user *entity.User) (*entity.User, error) {
 		return nil, err
 	}
 	return user, nil
+}
+
+// FindByID implementation
+func (r *PostgresUserRepo) FindByID(id int64) (*entity.User, error) {
+	var u entity.User
+	err := r.db.QueryRow("SELECT id, name FROM users WHERE id = $1", id).Scan(&u.ID, &u.Name)
+	if err == sql.ErrNoRows {
+		return nil, errors.New("user not found")
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
+// FindByName implementation
+func (r *PostgresUserRepo) FindByName(name string) ([]*entity.User, error) {
+	rows, err := r.db.Query("SELECT id, name FROM users WHERE name = $1", name)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []*entity.User
+	for rows.Next() {
+		var u entity.User
+		if err := rows.Scan(&u.ID, &u.Name); err != nil {
+			return nil, err
+		}
+		users = append(users, &u)
+	}
+
+	if len(users) == 0 {
+		return nil, errors.New("no users found PostgresUserRepo")
+	}
+	return users, nil
 }

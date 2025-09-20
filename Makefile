@@ -35,6 +35,11 @@ docker-build:
 docker-up:
 	docker-compose up
 
+# Docker run
+docker-run:
+	docker-compose build
+	docker-compose up
+
 # Docker down
 docker-down:
 	docker-compose down

@@ -4,17 +4,35 @@ package user;
 option go_package = "microservice/proto;proto";
 
 service UserService {
-  rpc GetUsers (Empty) returns (UserList);
+  rpc GetUsers (ListUsersRequest) returns (ListUsersResponse);
   rpc AddUser (User) returns (User);
+  rpc GetUserByID (GetUserByIDRequest) returns (GetUserByIDResponse); // NEW
+  rpc GetUsersByName (GetUsersByNameRequest) returns (GetUsersByNameResponse); // NEW
 }
 
-message Empty {}
+message ListUsersRequest {}
 
 message User {
-  int32 id = 1;
+  int64 id = 1;
   string name = 2;
 }
 
-message UserList {
+message ListUsersResponse {
+  repeated User users = 1;
+}
+
+message GetUserByIDRequest {
+  int64 id = 1;
+}
+
+message GetUserByIDResponse {
+  User user = 1;
+}
+
+message GetUsersByNameRequest {
+  string name = 1;
+}
+
+message GetUsersByNameResponse {
   repeated User users = 1;
 }

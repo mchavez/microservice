@@ -10,7 +10,7 @@ func TestInMemoryUserRepo(t *testing.T) {
 	repo := repository.NewInMemoryUserRepo()
 
 	// Add user
-	u, err := repo.Add(&entity.User{Name: "Bob"})
+	u, err := repo.Save(&entity.User{Name: "Bob"})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -19,7 +19,7 @@ func TestInMemoryUserRepo(t *testing.T) {
 	}
 
 	// Get all
-	users, err := repo.GetAll()
+	users, err := repo.FindAll()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
