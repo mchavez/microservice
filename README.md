@@ -10,6 +10,16 @@ This project is a clean-architecture microservice built with Golang featuring:
 - Unit & Integration Tests
 - Makefile for automation
 
+📌 Tech Stack
+```bash
+Go
+Gin
+gRPC
+PostgreSQL
+Swagger
+Docker
+```
+
 ---
 ## 📂 Project Structure
 ```bash
@@ -33,7 +43,7 @@ This project is a clean-architecture microservice built with Golang featuring:
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1. Clone Repository
 ```bash
@@ -68,10 +78,10 @@ docker-compose up --build
 ```
 
 REST API will be available at:
-👉 http://localhost:8080
+http://localhost:8080
 
 Swagger UI at:
-👉 http://localhost:8080/swagger/index.html
+http://localhost:8080/swagger/index.html
 
 📡 REST API (Gin)
 Create User
@@ -117,28 +127,32 @@ grpcurl -plaintext -d '{"id":1}' localhost:50051 user.UserService/GetUserByID
 grpcurl -plaintext -d '{"name":"Miguel"}' localhost:50051 user.UserService/GetUsersByName
 ```
     
-🧪 Installing protoc, protoc-gen-go
+Installing protoc, protoc-gen-go
 ```bash
     brew install protobuf
     go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
     go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
     export PATH="$PATH:$(go env GOPATH)/bin"
-    source ~/.zshrc
-    which protoc-gen-go
-    protoc-gen-go --version
     protoc --go_out=. --go-grpc_out=. proto/user.proto
 ```
 
-🧪 Installing swagger-go
+Verifyimg protoc-gen-go
+```bash
+    source ~/.zshrc
+    which protoc-gen-go
+    protoc-gen-go --version
+```
+
+Installing swagger-go
 ```bash
 go install github.com/swaggo/swag/cmd/swag@latest
 go get github.com/swaggo/gin-swagger
 go get github.com/swaggo/files
 -- fix issue -- https://github.com/swaggo/swag/issues/1568 --
 go get -u github.com/swaggo/swag
-```bash
+```
 
-🧪 Testing
+Testing
 Run all tests:
 ```bash
 make test
@@ -147,16 +161,6 @@ make test
 Run integration tests (requires DB):
 ```bash
 make integration-test
-```
-
-📌 Tech Stack
-```bash
-Go
-Gin
-gRPC
-PostgreSQL
-Swagger
-Docker
 ```
 
 ⚙️ Makefile Commands
