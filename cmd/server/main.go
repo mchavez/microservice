@@ -14,6 +14,7 @@ import (
 	_ "microservice/docs"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"google.golang.org/grpc"
@@ -26,20 +27,26 @@ import (
 // @host localhost:8080
 // @BasePath /
 func main() {
+	// setup logger
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.JSONFormatter{}) // JSON logs
+	logger.SetLevel(logrus.InfoLevel)
+
 	repo, err := initializeRepository()
 	if err != nil {
-		log.Fatalf("Repository initialization failed: %v", err)
+		logger.Fatalf("failed to connect to DB: %v", err)
 	}
 
-	uc := usecase.NewUserUseCase(repo)
+	// usecases (inject logger)
+	uc := usecase.NewUserUseCase(repo, logger)
 
 	startGRPCServer(uc)
-	startRESTServer(uc)
+	startRESTServer(uc, logger)
 }
 
 func initializeRepository() (repository.UserRepository, error) {
 	if os.Getenv("USE_DB") == "true" {
-		return repository.NewPostgresUserRepo(
+		return repository.NewPostgresUserRepo( // repositories
 			os.Getenv("DB_HOST"),
 			os.Getenv("DB_PORT"),
 			os.Getenv("DB_USER"),
@@ -59,7 +66,7 @@ func startGRPCServer(uc *usecase.UserUseCase) {
 		}
 		grpcServer := grpc.NewServer()
 		pb.RegisterUserServiceServer(grpcServer, grpcdelivery.NewUserGRPCServer(uc))
-		reflection.Register(grpcServer)
+		reflection.Register(grpcServer) // Allow grpcurl reflection
 		log.Println("gRPC server running on :50051")
 		if err := grpcServer.Serve(lis); err != nil {
 			log.Fatalf("failed to serve gRPC: %v", err)
@@ -67,9 +74,9 @@ func startGRPCServer(uc *usecase.UserUseCase) {
 	}()
 }
 
-func startRESTServer(uc *usecase.UserUseCase) {
+func startRESTServer(uc *usecase.UserUseCase, logger *logrus.Logger) {
 	router := gin.Default()
-	userHttp.NewUserHandler(router, uc)
+	userHttp.NewUserHandler(router, uc, logger)
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	log.Println("REST server running on :8080")
 	if err := router.Run(":8080"); err != nil {

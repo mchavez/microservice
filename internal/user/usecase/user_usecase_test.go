@@ -9,7 +9,7 @@ import (
 
 func TestUserUseCase_AddAndGetUsers(t *testing.T) {
 	repo := repository.NewInMemoryUserRepo()
-	uc := usecase.NewUserUseCase(repo)
+	uc := usecase.NewUserUseCase(repo, nil)
 
 	// Add a user
 	user := &entity.User{Name: "Alice"}

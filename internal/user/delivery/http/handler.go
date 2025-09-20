@@ -7,14 +7,16 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 type UserHandler struct {
-	uc *usecase.UserUseCase
+	uc     *usecase.UserUseCase
+	logger *logrus.Logger
 }
 
-func NewUserHandler(router *gin.Engine, uc *usecase.UserUseCase) {
-	handler := &UserHandler{uc}
+func NewUserHandler(router *gin.Engine, uc *usecase.UserUseCase, logger *logrus.Logger) {
+	handler := &UserHandler{uc: uc, logger: logger}
 	router.GET("/users", handler.GetUsers)    // covers both list and filter by name
 	router.GET("/users/:id", handler.GetUser) // find by ID
 	router.GET("/users/search/:name", handler.SearchUsers)
