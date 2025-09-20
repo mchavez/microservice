@@ -5,13 +5,6 @@ import (
 	"microservice/internal/user/entity"
 )
 
-type UserRepository interface {
-	Save(user *entity.User) (*entity.User, error)
-	FindAll() ([]*entity.User, error)
-	FindByID(id int64) (*entity.User, error)        // NEW
-	FindByName(name string) ([]*entity.User, error) // NEW
-}
-
 type InMemoryUserRepo struct {
 	users []*entity.User
 	ID    int64

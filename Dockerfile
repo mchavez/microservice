@@ -43,7 +43,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o microservice ./cmd/server
 # Stage 2: Create a minimal runtime image
 FROM alpine:latest
 
+# Sets the working directory inside the container
 WORKDIR /app
+
 COPY --from=builder /app/microservice .
 
 # Expose ports for REST + gRPC
