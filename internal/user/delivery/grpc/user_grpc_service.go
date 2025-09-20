@@ -6,17 +6,19 @@ import (
 	"microservice/internal/user/usecase"
 	pb "microservice/proto"
 
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type UserGRPCServer struct {
 	pb.UnimplementedUserServiceServer
-	uc *usecase.UserUseCase
+	uc     *usecase.UserUseCase
+	logger *logrus.Logger
 }
 
-func NewUserGRPCServer(uc *usecase.UserUseCase) *UserGRPCServer {
-	return &UserGRPCServer{uc: uc}
+func NewUserGRPCServer(uc *usecase.UserUseCase, logger *logrus.Logger) *UserGRPCServer {
+	return &UserGRPCServer{uc: uc, logger: logger}
 }
 
 func (s *UserGRPCServer) GetUsers(ctx context.Context, _ *pb.ListUsersRequest) (*pb.ListUsersResponse, error) {
@@ -28,11 +30,15 @@ func (s *UserGRPCServer) GetUsers(ctx context.Context, _ *pb.ListUsersRequest) (
 }
 
 func (s *UserGRPCServer) AddUser(ctx context.Context, user *pb.User) (*pb.User, error) {
-	u, err := s.uc.CreateUser(&entity.User{Name: user.Name})
+	s.logger.WithField("name", user.Name).Info("gRPC AddUser called")
+
+	usr, err := s.uc.CreateUser(&entity.User{Name: user.Name})
 	if err != nil {
+		s.logger.WithError(err).Error("failed to create user via gRPC")
 		return nil, status.Errorf(codes.Internal, "failed to create user: %v", err)
 	}
-	return &pb.User{Id: u.ID, Name: u.Name}, nil
+
+	return &pb.User{Id: usr.ID, Name: usr.Name}, nil
 }
 
 // GetUserByID retrieves a user by ID

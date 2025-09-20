@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 
+	"microservice/internal/middleware"
 	grpcdelivery "microservice/internal/user/delivery/grpc"
 	userHttp "microservice/internal/user/delivery/http"
 	"microservice/internal/user/repository"
@@ -40,7 +41,7 @@ func main() {
 	// usecases (inject logger)
 	uc := usecase.NewUserUseCase(repo, logger)
 
-	startGRPCServer(uc)
+	startGRPCServer(uc, logger)
 	startRESTServer(uc, logger)
 }
 
@@ -58,18 +59,21 @@ func initializeRepository() (repository.UserRepository, error) {
 	return repository.NewInMemoryUserRepo(), nil
 }
 
-func startGRPCServer(uc *usecase.UserUseCase) {
+func startGRPCServer(uc *usecase.UserUseCase, logger *logrus.Logger) {
 	go func() {
 		lis, err := net.Listen("tcp", ":50051")
 		if err != nil {
-			log.Fatalf("failed to listen: %v", err)
+			logger.Fatalf("failed to listen: %v", err)
 		}
-		grpcServer := grpc.NewServer()
-		pb.RegisterUserServiceServer(grpcServer, grpcdelivery.NewUserGRPCServer(uc))
+
+		grpcServer := grpc.NewServer(
+			grpc.UnaryInterceptor(middleware.UnaryLoggingInterceptor(logger)),
+		)
+		pb.RegisterUserServiceServer(grpcServer, grpcdelivery.NewUserGRPCServer(uc, logger))
 		reflection.Register(grpcServer) // Allow grpcurl reflection
 		log.Println("gRPC server running on :50051")
 		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("failed to serve gRPC: %v", err)
+			logger.Fatalf("failed to serve gRPC: %v", err)
 		}
 	}()
 }

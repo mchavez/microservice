@@ -33,7 +33,7 @@ func (uc *UserUseCase) CreateUser(user *entity.User) (*entity.User, error) {
 	return user, nil
 }
 
-func (uc *UserUseCase) GetUserByID(id int64) (*entity.User, error) { // NEW
+func (uc *UserUseCase) GetUserByID(id int64) (*entity.User, error) {
 	return uc.repo.FindByID(id)
 }
 
