@@ -7,15 +7,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// LoggerMiddleware logs the details of each HTTP request processed by the server.
 func LoggerMiddleware(logger *logrus.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		start := time.Now()
-		c.Next()
-		latency := time.Since(start)
+		startTime := time.Now()
+		c.Next() // Process the request
+		latency := time.Since(startTime)
 
-		status := c.Writer.Status()
+		// Log the request details
 		logger.WithFields(logrus.Fields{
-			"status":   status,
+			"status":   c.Writer.Status(),
 			"method":   c.Request.Method,
 			"path":     c.Request.URL.Path,
 			"latency":  latency.String(),
