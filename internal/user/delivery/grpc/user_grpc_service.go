@@ -29,8 +29,8 @@ func (s *UserGRPCServer) GetUsers(ctx context.Context, _ *pb.ListUsersRequest) (
 	return convertToListUsersResponse(users), nil
 }
 
-func (s *UserGRPCServer) AddUser(ctx context.Context, user *pb.User) (*pb.User, error) {
-	s.logger.WithField("name", user.Name).Info("gRPC AddUser called")
+func (s *UserGRPCServer) CreateUser(ctx context.Context, user *pb.User) (*pb.User, error) {
+	s.logger.WithField("name", user.Name).Info("gRPC CreateUser called")
 
 	usr, err := s.uc.CreateUser(&entity.User{Name: user.Name})
 	if err != nil {

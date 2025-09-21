@@ -5,7 +5,7 @@ option go_package = "microservice/proto;proto";
 
 service UserService {
   rpc GetUsers (ListUsersRequest) returns (ListUsersResponse);
-  rpc AddUser (User) returns (User);
+  rpc CreateUser (User) returns (User);
   rpc GetUserByID (GetUserByIDRequest) returns (GetUserByIDResponse); // NEW
   rpc GetUsersByName (GetUsersByNameRequest) returns (GetUsersByNameResponse); // NEW
 }

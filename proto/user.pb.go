@@ -7,12 +7,11 @@
 package proto
 
 import (
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
-
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -351,10 +350,11 @@ const file_proto_user_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\":\n" +
 	"\x16GetUsersByNameResponse\x12 \n" +
 	"\x05users\x18\x01 \x03(\v2\n" +
-	".user.UserR\x05users2\xfe\x01\n" +
+	".user.UserR\x05users2\x81\x02\n" +
 	"\vUserService\x12;\n" +
-	"\bGetUsers\x12\x16.user.ListUsersRequest\x1a\x17.user.ListUsersResponse\x12!\n" +
-	"\aAddUser\x12\n" +
+	"\bGetUsers\x12\x16.user.ListUsersRequest\x1a\x17.user.ListUsersResponse\x12$\n" +
+	"\n" +
+	"CreateUser\x12\n" +
 	".user.User\x1a\n" +
 	".user.User\x12B\n" +
 	"\vGetUserByID\x12\x18.user.GetUserByIDRequest\x1a\x19.user.GetUserByIDResponse\x12K\n" +
@@ -387,11 +387,11 @@ var file_proto_user_proto_depIdxs = []int32{
 	1, // 1: user.GetUserByIDResponse.user:type_name -> user.User
 	1, // 2: user.GetUsersByNameResponse.users:type_name -> user.User
 	0, // 3: user.UserService.GetUsers:input_type -> user.ListUsersRequest
-	1, // 4: user.UserService.AddUser:input_type -> user.User
+	1, // 4: user.UserService.CreateUser:input_type -> user.User
 	3, // 5: user.UserService.GetUserByID:input_type -> user.GetUserByIDRequest
 	5, // 6: user.UserService.GetUsersByName:input_type -> user.GetUsersByNameRequest
 	2, // 7: user.UserService.GetUsers:output_type -> user.ListUsersResponse
-	1, // 8: user.UserService.AddUser:output_type -> user.User
+	1, // 8: user.UserService.CreateUser:output_type -> user.User
 	4, // 9: user.UserService.GetUserByID:output_type -> user.GetUserByIDResponse
 	6, // 10: user.UserService.GetUsersByName:output_type -> user.GetUsersByNameResponse
 	7, // [7:11] is the sub-list for method output_type

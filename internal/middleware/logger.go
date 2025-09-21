@@ -18,7 +18,7 @@ func LoggerMiddleware(logger *logrus.Logger) gin.HandlerFunc {
 			"status":   status,
 			"method":   c.Request.Method,
 			"path":     c.Request.URL.Path,
-			"latency":  latency,
+			"latency":  latency.String(),
 			"clientIP": c.ClientIP(),
 		}).Info("HTTP request processed")
 	}

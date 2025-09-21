@@ -58,6 +58,7 @@ func (r *PostgresUserRepo) Save(user *entity.User) (*entity.User, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return user, nil
 }
 

@@ -17,11 +17,11 @@ func UnaryLoggingInterceptor(logger *logrus.Logger) grpc.UnaryServerInterceptor 
 	) (resp interface{}, err error) {
 		start := time.Now()
 		resp, err = handler(ctx, req)
-		duration := time.Since(start)
+		latency := time.Since(start)
 
 		fields := logrus.Fields{
-			"method":   info.FullMethod,
-			"duration": duration.String(),
+			"method":  info.FullMethod,
+			"latency": latency.String(),
 		}
 
 		if err != nil {

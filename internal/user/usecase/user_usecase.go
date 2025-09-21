@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// REST API
 type UserUseCase struct {
 	repo   repository.UserRepository
 	logger *logrus.Logger

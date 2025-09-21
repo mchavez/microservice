@@ -75,9 +75,11 @@ func startGRPCServer(uc *usecase.UserUseCase, logger *logrus.Logger) {
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(middleware.UnaryLoggingInterceptor(logger)),
 	)
+
 	pb.RegisterUserServiceServer(grpcServer, grpcdelivery.NewUserGRPCServer(uc, logger))
-	reflection.Register(grpcServer)
+	reflection.Register(grpcServer) // Allow grpcurl reflection
 	log.Println("gRPC server running on :50051")
+
 	if err := grpcServer.Serve(lis); err != nil {
 		logger.Fatalf("failed to serve gRPC: %v", err)
 	}
@@ -85,9 +87,12 @@ func startGRPCServer(uc *usecase.UserUseCase, logger *logrus.Logger) {
 
 func startRESTServer(uc *usecase.UserUseCase, logger *logrus.Logger) {
 	router := gin.Default()
+	router.Use(gin.Recovery())
+	router.Use(middleware.LoggerMiddleware(logger)) // log all requests
 	userHttp.NewUserHandler(router, uc, logger)
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	log.Println("REST server running on :8080")
+
 	if err := router.Run(":8080"); err != nil {
 		log.Fatalf("failed to run REST server: %v", err)
 	}

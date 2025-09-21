@@ -120,7 +120,7 @@ Use any gRPC client (e.g., evans, grpcurl) to test:
 ```bash
 grpcurl -plaintext localhost:50051 user.UserService/GetUsers
 
-grpcurl -plaintext -d '{"name":"Miguel"}' localhost:50051 user.UserService/AddUser
+grpcurl -plaintext -d '{"name":"Miguel"}' localhost:50051 user.UserService/CreateUser
 
 grpcurl -plaintext -d '{"id":1}' localhost:50051 user.UserService/GetUserByID
 
