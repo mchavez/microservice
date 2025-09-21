@@ -24,18 +24,45 @@ Docker
 ## 📂 Project Structure
 ```bash
 ├── cmd/
-│ └── server/ # Application entry point
+│   ├── server/ # Application entry point
+│   │   └── main.go
 ├── internal/
-│ └── user/
-│ ├── delivery/ # REST (Gin) + gRPC delivery
-│ │ └── http/
-│ │ └── handler.go
-│ ├── entity/ # Core business models
-│ ├── repository/ # Repository interfaces + implementations
-│ └── usecase/ # Business logic
+│   ├── middleware/
+│   │   ├── grpc_logger.go
+│   │   └── http_logger.go
+│   └── user/
+│       ├── delivery/ # REST (Gin) + gRPC delivery
+│       │    ├── grpc/
+│       │    │   └── user_grpc_service.go
+│       │    └── http/
+│       │        └── handler.go
+│       ├── entity/ # Core business models
+│       │   └── user.go
+│       ├── repository/ # Repository interfaces + implementations
+│       │   ├── inmemory_user_repo_test.go
+│       │   ├── inmemory_user_repo.go
+│       │   ├── postgres_repo.go
+│       │   ├── postgres_test.go
+│       │   └── user_repository.go
+│       └── usecase/ # Business logic
+│           ├── user_usecase_test.go
+│           └── user_usecase.go
+├── migrations/ # migration files
+│   ├── 000001_create_users_table.down.sql
+│   ├── 000001_create_users_table.up.sql
+│   └── init.sql
 ├── proto/ # gRPC proto files
+│   ├── user_grpc.pb.go
+│   ├── user.pb.go
+│   └── user.proto
 ├── docs/ # Swagger docs (auto-generated)
+│   ├── docs.go
+│   ├── swagger.json
+│   └── swagger.yaml
 ├── Dockerfile
+├── go.mod
+├── go.sum
+├── LICENSE
 ├── docker-compose.yml
 ├── Makefile
 └── README.md
@@ -110,7 +137,7 @@ gRPC API proto/user.proto
 ```bash
 service UserService {
   rpc GetUsers (ListUsersRequest) returns (ListUsersResponse);
-  rpc AddUser (User) returns (User);
+  rpc CreateUser (User) returns (User);
   rpc GetUserByID (GetUserByIDRequest) returns (GetUserByIDResponse); // NEW
   rpc GetUsersByName (GetUsersByNameRequest) returns (GetUsersByNameResponse); // NEW
 }
