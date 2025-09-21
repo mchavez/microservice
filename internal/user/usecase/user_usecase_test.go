@@ -5,11 +5,14 @@ import (
 	"microservice/internal/user/repository"
 	"microservice/internal/user/usecase"
 	"testing"
+
+	"github.com/sirupsen/logrus"
 )
 
 func TestUserUseCase_AddAndGetUsers(t *testing.T) {
+	logger := logrus.New()
 	repo := repository.NewInMemoryUserRepo()
-	uc := usecase.NewUserUseCase(repo, nil)
+	uc := usecase.NewUserUseCase(repo, logger)
 
 	// Add a user
 	user := &entity.User{Name: "Alice"}
